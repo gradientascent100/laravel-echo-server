@@ -229,7 +229,9 @@ export class EchoServer {
                 let channel = this.find(socket.id);
 
                 this.database.publish('server-events', {
-                    "event": data.event,
+                    channel: data.channel,
+                    auth: data.auth,
+                    event: data.event,
                     data: data.data,
                     socketId: socket.id
                 });
