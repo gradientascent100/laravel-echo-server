@@ -37,4 +37,11 @@ export class RedisDatabase implements DatabaseDriver {
             }));
         }
     }
+
+    /**
+     * Publish message to the given Pub/Sub channel.
+     */
+    publish(channel: string, message: any): void {
+        this._redis.publish(channel, JSON.stringify(message));
+    }
 }

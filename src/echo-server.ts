@@ -1,5 +1,7 @@
 import { HttpSubscriber, RedisSubscriber, Subscriber } from './subscribers';
 import { Channel } from './channels';
+import { PrivateChannel } from './channels/private-channel';
+import { Database } from './database';
 import { Server } from './server';
 import { HttpApi } from './api';
 import { Log } from './log';
@@ -63,6 +65,16 @@ export class EchoServer {
     private channel: Channel;
 
     /**
+     * Database instance.
+     */
+    private database: Database;
+
+    /**
+     * Private channel instance.
+     */
+    private private: PrivateChannel;
+
+    /**
      * Subscribers
      */
     private subscribers: Subscriber[];
@@ -92,6 +104,8 @@ export class EchoServer {
                     resolve(this);
                 }, error => Log.error(error));
             }, error => Log.error(error));
+
+            this.database = new Database(this.options);
         });
     }
 
@@ -192,6 +206,7 @@ export class EchoServer {
             this.onUnsubscribe(socket);
             this.onDisconnecting(socket);
             this.onClientEvent(socket);
+            this.onServerEvent(socket);
         });
     }
 
@@ -201,6 +216,34 @@ export class EchoServer {
     onSubscribe(socket: any): void {
         socket.on('subscribe', data => {
             this.channel.join(socket, data);
+        });
+    }
+
+    /**
+     * On server event.
+     */
+    onServerEvent(socket: any): void {
+        socket.on('server event', data => {
+            let privateChannel = new PrivateChannel(this.options);
+            privateChannel.authenticate(socket, data).then(res => {
+                let channel = this.find(socket.id);
+
+                this.database.publish('server-events', {
+                    "event": data.event,
+                    data: data.data,
+                    socketId: socket.id
+                });
+
+                // this.onJoin(socket, data.channel);
+            }, error => {
+                if (this.options.devMode) {
+                    Log.error(error.reason);
+                }
+
+                // this.io.sockets.to(socket.id)
+                //     .emit('subscription_error', data.channel, error.status);
+            });
+
         });
     }
 

@@ -11,4 +11,9 @@ export interface DatabaseDriver {
      * Set a value to the database.
      */
     set(key: string, value: any): void;
+
+    /**
+     * Publish message to the given channel
+     */
+    publish(channel: string, message: any): void;
 }

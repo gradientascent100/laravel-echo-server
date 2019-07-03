@@ -38,4 +38,11 @@ export class Database implements DatabaseDriver {
     set(key: string, value: any): void {
         this.driver.set(key, value);
     };
+
+    /**
+     * Publish message to the given channel
+     */
+    publish(channel: string, message: any): void {
+        this.driver.publish(channel, message);
+    };
 }
